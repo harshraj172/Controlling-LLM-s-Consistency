@@ -16,7 +16,7 @@ def paraphrase(inp, method=1):
             input_variables=["method", "sentence"],
             template=PP_TEMPLATE,
         )
-    llm = OpenAI(openai_api_key="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",)
+    llm = OpenAI(openai_api_key="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",)
     inp_pp = llm(prompt=pp_prompt.format(method=str(method), sentence=inp), stop='\n')
     return inp_pp.strip()
 
@@ -24,8 +24,12 @@ def produce_output_variations(inp, type_="sampling"):
     PROMPT_TEMPLATE = \
 """
 Question: {question}
-Answer the above question in the fewest words possible.
+Answer the above question in a single sentence.
 Answer:"""
+# """
+# Question: {question}
+# Answer the above question in the fewest words possible.
+# Answer:"""
     prompt = PromptTemplate(
             input_variables=["question"],
             template=PROMPT_TEMPLATE,)
@@ -33,12 +37,12 @@ Answer:"""
     outs, inp_pps = [], []
     if type_ == "sampling":
         for t in np.arange(0, 1, 0.05):
-            llm = OpenAI(openai_api_key="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", temperature=t)
+            llm = OpenAI(openai_api_key="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", temperature=t)
             chain = LLMChain(llm=llm, prompt=prompt)
             out = chain.run({"question":inp,})
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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")
+        llm = OpenAI(openai_api_key="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")
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
@@ -62,12 +66,12 @@ For the question above there are several options given, choose one among them wh
     outs = []
     if type_ == "sampling":
         for t in np.arange(0, 1, 0.05):
-            llm = OpenAI(openai_api_key="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", temperature=t)
+            llm = OpenAI(openai_api_key="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", temperature=t)
             chain = LLMChain(llm=llm, prompt=prompt)
             out = chain.run({"question":inp})
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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",)
+        llm = OpenAI(openai_api_key="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",)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)

@@ -1,3 +1,31 @@
+SYSTEM_TEMPLATE = \
+"""You're an AI agent who is talkative and provides lots of specific details from its context. If the AI does not know the answer to a question, it truthfully says it does not know."""
+
+HUMAN_TEMPLATE = \
+"""
+You're a consistency scoring agent which is given a set consisting of  two (input, output) pairs in the form [Pair1: (Input1, Output1), Pair2: (Input2, Output2)]. You're also given the type of (input, output) pairs like "Short form Question-Answering", "Translation", "Long form Question-Answering", etc. The inputs in the set are exactly same or might be paraphrases of each other. 
+*CONSISTENCY*:  A set is said to be consistent if the two outputs convey the *EXACT* same meaning. There might be more than one common *FACT* in the pair but the pair is said to be consistent *ONLY IF* all the facts have an exact match.
+*NOTE*: You should only check if the two outputs convey the same thing.
+                   You should ignore anything about correctness of an outputs w.r.t. the input.
+
+set: [
+"Pair1": (
+"Input1": "{input1}",
+"Output1": "{output1}",
+),
+"Pair2": (
+"Input2": "{input2}",
+"Output2": "{output2}",
+),
+"Type": "{Type}", 
+"Output Consistency": 
+]
+
+*INSTRUCTION*: Based on the above set -
+1. Thoroughly check if Output1 and Output2 are consistent with *REASONING* and *EXPLAINING* every part.
+2. At the end, you must return the updated set with filling up the "Output Consistency" with "Yes" or "No".
+"""
+
 PP_TEMPLATE = \
 """
 Today I want you to learn the ways of paraphrasing a sentence. Below are few methods with examples. Go through them carefully.
