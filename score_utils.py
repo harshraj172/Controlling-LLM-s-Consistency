@@ -48,7 +48,7 @@ class SimEntail():
 class SimLLM():
     def __init__(self,):
         super(SimLLM, self).__init__()
-        llm = OpenAI(openai_api_key="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", )
+        llm = OpenAI(openai_api_key="", )
 
         # step 1
         prompt_eval_step1 = PromptTemplate(
