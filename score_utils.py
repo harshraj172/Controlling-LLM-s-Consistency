@@ -71,7 +71,7 @@ class SimLLM():
 # class SimLLM():
 #     def __init__(self,):
 #         super(SimLLM, self).__init__()
-#         self.llm = ChatOpenAI(openai_api_key="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")
+#         self.llm = ChatOpenAI(openai_api_key="")
 
 #         system_message_prompt = SystemMessagePromptTemplate.from_template(SYSTEM_TEMPLATE)
 #         human_message_prompt = HumanMessagePromptTemplate.from_template(HUMAN_TEMPLATE)
