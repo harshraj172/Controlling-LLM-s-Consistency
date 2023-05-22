@@ -8,6 +8,8 @@
 - `score_utils` utility functions for `score.py`.
 - `example-consistency_paraphrasing.ipynb` proof of concept of the idea.
 
+## Setup
+`pip install -r requirements.txt`
 ## Experiments
 1. To generate outputs across model sizes and types:
     
