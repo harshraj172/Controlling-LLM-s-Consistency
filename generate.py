@@ -29,6 +29,7 @@ def produce_output_variations(inp, type_="sampling"):
     PROMPT_TEMPLATE = \
 """
 Question: {question}
+Answer the above question in a single sentence.
 Answer:"""
 # """
 # Question: {question}
@@ -40,27 +41,35 @@ Answer:"""
     
     outs, inp_pps = [], []
     if type_ == "sampling":
-        for t in np.arange(0, 1, 0.1):
+        for t in np.arange(0.01, 1, 0.05):
             if args.model_name=="text-davinci-003":
-                llm = OpenAI(openai_api_key="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", temperature=t)
+                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
                 out = chain.run({"question":inp,})
             else:
                 input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp), return_tensors="pt").input_ids
-                out = model.generate(input_ids.to(device), max_new_tokens=55, temperature=t)
+                out_tok = model.generate(input_ids.to(device), max_new_tokens=55, 
+                                         top_p=0.7, top_k=0, temperature=t,
+                                         do_sample=True, no_repeat_ngram_size=2,)
+                out = tokenizer.batch_decode(out_tok, skip_special_tokens=True)[0]
+                out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp), '')
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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")
+        llm = OpenAI(openai_api_key="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", top_p=0.7)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
             inp_pps.append(inp_pp)
             if args.model_name=="text-davinci-003":
                 out = chain.run({"question":inp_pp,})
-                outs.append(out.strip())
             else:
                 input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp_pp), return_tensors="pt").input_ids
-                out = model.generate(input_ids.to(device), max_new_tokens=55)
+                out_tok = model.generate(input_ids.to(device), max_new_tokens=55, 
+                                         top_p=0.7, top_k=0, temperature=t,
+                                         do_sample=True, no_repeat_ngram_size=2,)
+                out = tokenizer.batch_decode(out_tok, skip_special_tokens=True)[0]
+                out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp_pp), '')
+            outs.append(out.strip())
     return outs, inp_pps
 
 def ans_via_comparison(inp, outs, type_="sampling"):
@@ -77,26 +86,34 @@ For the question above there are several options given, choose one among them wh
     
     outs = []
     if type_ == "sampling":
-        for t in np.arange(0, 1, 0.1):
+        for t in np.arange(0.01, 1, 0.05):
             if args.model_name=="text-davinci-003":
-                llm = OpenAI(openai_api_key="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", temperature=t)
+                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
                 out = chain.run({"question":inp})
             else:
                 input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp), return_tensors="pt").input_ids
-                out = model.generate(input_ids.to(device), max_new_tokens=55, temperature=t)
+                out_tok = model.generate(input_ids.to(device), max_new_tokens=55, 
+                                         top_p=0.7, top_k=0, temperature=t,
+                                         do_sample=True, no_repeat_ngram_size=2,)
+                out = tokenizer.batch_decode(out_tok, skip_special_tokens=True)[0]
+                out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp), '')
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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",)
+        llm = OpenAI(openai_api_key="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", top_p=0.7)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
             if args.model_name=="text-davinci-003":
                 out = chain.run({"question":inp_pp,})
-                outs.append(out.strip())
             else:
-                input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp), return_tensors="pt").input_ids
-                out = model.generate(input_ids.to(device), max_new_tokens=55, temperature=t)
+                input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp_pp), return_tensors="pt").input_ids
+                out_tok = model.generate(input_ids.to(device), max_new_tokens=55, 
+                                         top_p=0.7, top_k=0, temperature=t,
+                                         do_sample=True, no_repeat_ngram_size=2,)
+                out = tokenizer.batch_decode(out_tok, skip_special_tokens=True)[0]
+                out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp_pp), '')
+            outs.append(out.strip())
     return outs
 
 
@@ -153,6 +170,6 @@ if __name__ == "__main__":
         })
         
         if (i+1)%1==0:
-            res_df.to_csv(f"result_{args.variation_type}-{args.input_file}", index=False)
+            res_df.to_csv(f"generated_{args.model_name.replace('/', '')}_{args.variation_type}-{args.input_file}", index=False)
             
-    res_df.to_csv(f"result_{args.variation_type}-{args.input_file}", index=False)
+    res_df.to_csv(f"generated_{args.model_name.replace('/', '')}_{args.variation_type}-{args.input_file}", index=False)
