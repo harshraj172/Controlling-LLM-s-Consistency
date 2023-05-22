@@ -11,7 +11,7 @@
 ## Experiments
 - To generate outputs across model sizes and types:
   - `python generate.py --input_file truthfulQA-final_labelled.csv --model_name --variation_type sampling`
-  - Run the above command on different --model_names:
+  - Run the above command on different "--model_names":
     - `facebook/opt-125m`
     - `facebook/opt-350m`
     - `facebook/opt-1.3b` 
