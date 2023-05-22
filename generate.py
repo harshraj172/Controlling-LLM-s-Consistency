@@ -4,6 +4,9 @@ import numpy as np
 import pandas as  pd
 from tqdm.auto import tqdm
 
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
 from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.llms import OpenAI
@@ -11,12 +14,14 @@ from langchain.chains import LLMChain
 
 from templates import *
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 def paraphrase(inp, method=1):
     pp_prompt = PromptTemplate(
             input_variables=["method", "sentence"],
             template=PP_TEMPLATE,
         )
-    llm = OpenAI(openai_api_key="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",)
+    llm = OpenAI(openai_api_key="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",)
     inp_pp = llm(prompt=pp_prompt.format(method=str(method), sentence=inp), stop='\n')
     return inp_pp.strip()
 
@@ -24,7 +29,6 @@ def produce_output_variations(inp, type_="sampling"):
     PROMPT_TEMPLATE = \
 """
 Question: {question}
-Answer the above question in a single sentence.
 Answer:"""
 # """
 # Question: {question}
@@ -37,18 +41,26 @@ Answer:"""
     outs, inp_pps = [], []
     if type_ == "sampling":
         for t in np.arange(0, 1, 0.05):
-            llm = OpenAI(openai_api_key="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", temperature=t)
-            chain = LLMChain(llm=llm, prompt=prompt)
-            out = chain.run({"question":inp,})
+            if args.model_name=="text-davinci-003":
+                llm = OpenAI(openai_api_key="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", temperature=t)
+                chain = LLMChain(llm=llm, prompt=prompt)
+                out = chain.run({"question":inp,})
+            else:
+                input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp), return_tensors="pt").input_ids
+                out = model.generate(input_ids.to(device), max_new_tokens=55, temperature=t)
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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")
+        llm = OpenAI(openai_api_key="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")
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
             inp_pps.append(inp_pp)
-            out = chain.run({"question":inp_pp,})
-            outs.append(out.strip())
+            if args.model_name=="text-davinci-003":
+                out = chain.run({"question":inp_pp,})
+                outs.append(out.strip())
+            else:
+                input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp_pp), return_tensors="pt").input_ids
+                out = model.generate(input_ids.to(device), max_new_tokens=55)
     return outs, inp_pps
 
 def ans_via_comparison(inp, outs, type_="sampling"):
@@ -66,17 +78,25 @@ For the question above there are several options given, choose one among them wh
     outs = []
     if type_ == "sampling":
         for t in np.arange(0, 1, 0.05):
-            llm = OpenAI(openai_api_key="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", temperature=t)
-            chain = LLMChain(llm=llm, prompt=prompt)
-            out = chain.run({"question":inp})
+            if args.model_name=="text-davinci-003":
+                llm = OpenAI(openai_api_key="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", temperature=t)
+                chain = LLMChain(llm=llm, prompt=prompt)
+                out = chain.run({"question":inp})
+            else:
+                input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp), return_tensors="pt").input_ids
+                out = model.generate(input_ids.to(device), max_new_tokens=55, temperature=t)
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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",)
+        llm = OpenAI(openai_api_key="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",)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
-            out = chain.run({"question":inp_pp,})
-            outs.append(out.strip())
+            if args.model_name=="text-davinci-003":
+                out = chain.run({"question":inp_pp,})
+                outs.append(out.strip())
+            else:
+                input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp), return_tensors="pt").input_ids
+                out = model.generate(input_ids.to(device), max_new_tokens=55, temperature=t)
     return outs
 
 
@@ -90,6 +110,9 @@ if __name__ == "__main__":
     parser.add_argument('--input_file',
                         type=str,
                         help='path to data in .csv')
+    parser.add_argument('--model_name',
+                        type=str,
+                        default="text-davinci-003")
     parser.add_argument('--variation_type',
                         type=str,
                         choices=["context", "sampling"],
@@ -97,7 +120,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     df = pd.read_csv(args.input_file)
-    # df = df[:100]
+
+    if args.model_name!="text-davinci-003":
+        tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+        model = AutoModelForCausalLM.from_pretrained(args.model_name)
+        model.to(device)
+    
     all_questions, all_outs, all_inp_pps, all_cons_inp_pps, all_consistent_outs, all_correct_outs = [], [], [], [], [], []
     for i in tqdm(range(len(df))):
         inp = df.question[i]

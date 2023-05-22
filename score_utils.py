@@ -48,18 +48,20 @@ class SimEntail():
 class SimLLM():
     def __init__(self,):
         super(SimLLM, self).__init__()
-        llm = OpenAI(openai_api_key="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", )
+        llm = OpenAI(openai_api_key="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", )
 
         # step 1
         prompt_eval_step1 = PromptTemplate(
                 input_variables=["context", "question"],
                 template=EVAL_STEP1_TEMPLATE,)
-        self.chain_step1 = LLMChain(llm=llm, prompt=prompt_eval_step1)        
+        self.chain_step1 = LLMChain(llm=llm, prompt=prompt_eval_step1)    
+        self.chain_step1.verbose = True    
         # step 2
         prompt_eval_step2 = PromptTemplate(
                 input_variables=["question", "answer1", "answer2"],
                 template=EVAL_STEP2_TEMPLATE,)
         self.chain_step2 = LLMChain(llm=llm, prompt=prompt_eval_step2)    
+        self.chain_step2.verbose = True
 
     def score(self, inp, out1, out2, type):
         out1_step1 = self.chain_step1.run({"context":out1, "question":inp})
@@ -71,7 +73,7 @@ class SimLLM():
 # class SimLLM():
 #     def __init__(self,):
 #         super(SimLLM, self).__init__()
-#         self.llm = ChatOpenAI(openai_api_key="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")
+#         self.llm = ChatOpenAI(openai_api_key="")
 
 #         system_message_prompt = SystemMessagePromptTemplate.from_template(SYSTEM_TEMPLATE)
 #         human_message_prompt = HumanMessagePromptTemplate.from_template(HUMAN_TEMPLATE)
