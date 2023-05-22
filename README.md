@@ -17,3 +17,13 @@
     - `facebook/opt-125m`
     - `facebook/opt-350m`
     - `facebook/opt-1.3b` 
+    - `facebook/opt-6.7b` 
+    - `facebook/opt-13b` 
+    - `EleutherAI/pythia-70m`
+    - `EleutherAI/pythia-160m`
+    - `EleutherAI/pythia-410m`
+    - `EleutherAI/pythia-1b`
+    - `EleutherAI/pythia-1.4b`
+    - `EleutherAI/pythia-2.8b`
+    - `EleutherAI/pythia-6.9b`
+    - `EleutherAI/pythia-12b`
