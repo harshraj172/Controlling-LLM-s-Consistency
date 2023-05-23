@@ -41,7 +41,7 @@ Answer:"""
     
     outs, inp_pps = [], []
     if type_ == "sampling":
-        for t in np.arange(0.01, 1, 0.05):
+        for t in np.arange(0.01, 1, 0.1):
             if args.model_name=="text-davinci-003":
                 llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
@@ -86,7 +86,7 @@ For the question above there are several options given, choose one among them wh
     
     outs = []
     if type_ == "sampling":
-        for t in np.arange(0.01, 1, 0.05):
+        for t in np.arange(0.01, 1, 0.1):
             if args.model_name=="text-davinci-003":
                 llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
