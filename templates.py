@@ -27,8 +27,7 @@ set: [
 """
 
 PP_TEMPLATE = \
-"""
-Today I want you to learn the ways of paraphrasing a sentence or a question. Below are few methods with examples. Go through them carefully.
+"""Today I want you to learn the ways of paraphrasing a sentence. Below are few methods with examples. Go through them carefully.
 
 1. Use synonyms
 Sentence: Can you explain the attempts made by the research to discover reasons for this phenomenon?

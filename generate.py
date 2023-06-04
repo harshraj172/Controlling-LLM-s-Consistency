@@ -4,10 +4,12 @@ import numpy as np
 import pandas as  pd
 from tqdm.auto import tqdm
 
-# import torch
+import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
+from langchain.schema import SystemMessage, HumanMessage, AIMessage
 from langchain.prompts import PromptTemplate
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
@@ -21,8 +23,9 @@ def paraphrase(inp, method=1):
             input_variables=["method", "sentence"],
             template=PP_TEMPLATE,
         )
-    llm = OpenAI(openai_api_key="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",)
-    inp_pp = llm(prompt=pp_prompt.format(method=str(method), sentence=inp), stop='\n')
+    llm = ChatOpenAI(openai_api_key="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",model_name="gpt-3.5-turbo")
+    messages = [HumanMessage(content=pp_prompt.format(method=str(method), sentence=inp))]
+    inp_pp = llm(messages, stop='\n').content
     return inp_pp.strip()
 
 def produce_output_variations(inp, type_="sampling"): 
@@ -43,7 +46,7 @@ Answer:"""
     if type_ == "sampling":
         for t in np.arange(0.01, 1, 0.1):
             if args.model_name=="text-davinci-003":
-                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
+                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
                 out = chain.run({"question":inp,})
             else:
@@ -55,7 +58,7 @@ Answer:"""
                 out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp), '')
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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", top_p=0.7)
+        llm = OpenAI(openai_api_key="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", top_p=0.7)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
@@ -65,7 +68,7 @@ Answer:"""
             else:
                 input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp_pp), return_tensors="pt").input_ids
                 out_tok = model.generate(input_ids.to(device), max_new_tokens=55, 
-                                         top_p=0.7, top_k=0, temperature=t,
+                                         top_p=0.7, top_k=0, temperature=0.6,
                                          do_sample=True, no_repeat_ngram_size=2,)
                 out = tokenizer.batch_decode(out_tok, skip_special_tokens=True)[0]
                 out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp_pp), '')
@@ -88,7 +91,7 @@ For the question above there are several options given, choose one among them wh
     if type_ == "sampling":
         for t in np.arange(0.01, 1, 0.1):
             if args.model_name=="text-davinci-003":
-                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
+                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
                 out = chain.run({"question":inp})
             else:
@@ -100,7 +103,7 @@ For the question above there are several options given, choose one among them wh
                 out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp), '')
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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", top_p=0.7)
+        llm = OpenAI(openai_api_key="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", top_p=0.7)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
@@ -109,7 +112,7 @@ For the question above there are several options given, choose one among them wh
             else:
                 input_ids = tokenizer(PROMPT_TEMPLATE.replace("{question}", inp_pp), return_tensors="pt").input_ids
                 out_tok = model.generate(input_ids.to(device), max_new_tokens=55, 
-                                         top_p=0.7, top_k=0, temperature=t,
+                                         top_p=0.7, top_k=0, temperature=0.6,
                                          do_sample=True, no_repeat_ngram_size=2,)
                 out = tokenizer.batch_decode(out_tok, skip_special_tokens=True)[0]
                 out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp_pp), '')
