@@ -4,7 +4,7 @@ import numpy as np
 import pandas as  pd
 from tqdm.auto import tqdm
 
-import torch
+# import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from langchain.llms import OpenAI
@@ -21,7 +21,7 @@ def paraphrase(inp, method=1):
             input_variables=["method", "sentence"],
             template=PP_TEMPLATE,
         )
-    llm = OpenAI(openai_api_key="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",)
+    llm = OpenAI(openai_api_key="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",)
     inp_pp = llm(prompt=pp_prompt.format(method=str(method), sentence=inp), stop='\n')
     return inp_pp.strip()
 
@@ -43,7 +43,7 @@ Answer:"""
     if type_ == "sampling":
         for t in np.arange(0.01, 1, 0.1):
             if args.model_name=="text-davinci-003":
-                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
+                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
                 out = chain.run({"question":inp,})
             else:
@@ -55,7 +55,7 @@ Answer:"""
                 out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp), '')
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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", top_p=0.7)
+        llm = OpenAI(openai_api_key="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", top_p=0.7)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
@@ -88,7 +88,7 @@ For the question above there are several options given, choose one among them wh
     if type_ == "sampling":
         for t in np.arange(0.01, 1, 0.1):
             if args.model_name=="text-davinci-003":
-                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
+                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
                 out = chain.run({"question":inp})
             else:
@@ -100,7 +100,7 @@ For the question above there are several options given, choose one among them wh
                 out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp), '')
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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", top_p=0.7)
+        llm = OpenAI(openai_api_key="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", top_p=0.7)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
@@ -137,7 +137,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     df = pd.read_csv(args.input_file)
-
     if args.model_name!="text-davinci-003":
         tokenizer = AutoTokenizer.from_pretrained(args.model_name)
         model = AutoModelForCausalLM.from_pretrained(args.model_name)
