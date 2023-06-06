@@ -5,7 +5,7 @@ import evaluate
 import spacy 
 
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 from langchain.llms import OpenAI
@@ -44,33 +44,74 @@ class SimEntail():
         outputs = self.detection_model(**inputs)
         scores = outputs.logits.softmax(dim=-1)
         return scores.T[2].item()
-
+    
 class SimLLM():
+    """
+    Using huggingface models
+    """
     def __init__(self,):
         super(SimLLM, self).__init__()
-        llm = OpenAI(openai_api_key="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", )
+        self.llm = pipeline(model="google/flan-t5-xxl")
+        
+        self.prompt_eval_step1 = EVAL_STEP1_TEMPLATE
+        self.prompt_eval_step2 = EVAL_STEP2_TEMPLATE
 
-        # step 1
-        prompt_eval_step1 = PromptTemplate(
-                input_variables=["context", "question"],
-                template=EVAL_STEP1_TEMPLATE,)
-        self.chain_step1 = LLMChain(llm=llm, prompt=prompt_eval_step1)    
-        self.chain_step1.verbose = False    
-        # step 2
-        prompt_eval_step2 = PromptTemplate(
-                input_variables=["question", "answer1", "answer2"],
-                template=EVAL_STEP2_TEMPLATE,)
-        self.chain_step2 = LLMChain(llm=llm, prompt=prompt_eval_step2)    
-        self.chain_step2.verbose = False
+        # # step 1
+        # prompt_eval_step1 = PromptTemplate(
+        #         input_variables=["context", "question"],
+        #         template=EVAL_STEP1_TEMPLATE,)
+        # self.chain_step1 = LLMChain(llm=llm, prompt=prompt_eval_step1)    
+        # self.chain_step1.verbose = False    
+        # # step 2
+        # prompt_eval_step2 = PromptTemplate(
+        #         input_variables=["question", "answer1", "answer2"],
+        #         template=EVAL_STEP2_TEMPLATE,)
+        # self.chain_step2 = LLMChain(llm=llm, prompt=prompt_eval_step2)    
+        # self.chain_step2.verbose = False
 
     def score(self, inp, out1, out2, type):
-        out1_step1 = self.chain_step1.run({"context":out1, "question":inp})
-        out2_step1 = self.chain_step1.run({"context":out2, "question":inp})
+        out1_step1 = self.llm(self.prompt_eval_step1.replace("{context}", out1).replace("{question}", inp))
+        out2_step1 = self.llm(self.prompt_eval_step2.replace("{context}", out2).replace("{question}", inp))
 
-        score = self.chain_step2.run({"question":inp.strip(), "answer1":out1_step1.strip(), "answer2":out2_step1.strip()})
+        # out1_step1 = self.chain_step1.run({"context":out1, "question":inp})
+        # out2_step1 = self.chain_step1.run({"context":out2, "question":inp})
+
+        score = self.llm(self.prompt_eval_step2.replace("{question}", inp.strip()).replace("{answer1}", out1_step1.strip()).replace("{answer2}", out2_step1.strip()))
+        # score = self.chain_step2.run({"question":inp.strip(), "answer1":out1_step1.strip(), "answer2":out2_step1.strip()})
         return 1 if score.strip()=='Yes' else 0
 
 # class SimLLM():
+#     """
+#     Using text-davinci-003
+#     """
+#     def __init__(self,):
+#         super(SimLLM, self).__init__()
+#         llm = OpenAI(openai_api_key="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", )
+
+#         # step 1
+#         prompt_eval_step1 = PromptTemplate(
+#                 input_variables=["context", "question"],
+#                 template=EVAL_STEP1_TEMPLATE,)
+#         self.chain_step1 = LLMChain(llm=llm, prompt=prompt_eval_step1)    
+#         self.chain_step1.verbose = False    
+#         # step 2
+#         prompt_eval_step2 = PromptTemplate(
+#                 input_variables=["question", "answer1", "answer2"],
+#                 template=EVAL_STEP2_TEMPLATE,)
+#         self.chain_step2 = LLMChain(llm=llm, prompt=prompt_eval_step2)    
+#         self.chain_step2.verbose = False
+
+#     def score(self, inp, out1, out2, type):
+#         out1_step1 = self.chain_step1.run({"context":out1, "question":inp})
+#         out2_step1 = self.chain_step1.run({"context":out2, "question":inp})
+
+#         score = self.chain_step2.run({"question":inp.strip(), "answer1":out1_step1.strip(), "answer2":out2_step1.strip()})
+#         return 1 if score.strip()=='Yes' else 0
+
+# class SimLLM():
+#     """
+#     Using GPT-3.5-turbo
+#     """
 #     def __init__(self,):
 #         super(SimLLM, self).__init__()
 #         self.llm = ChatOpenAI(openai_api_key="")
