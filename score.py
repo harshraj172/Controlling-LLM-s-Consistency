@@ -29,16 +29,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     df = pd.read_csv(args.input_file)
-    done_df = pd.read_csv("scored_llm_prompting_cluster_entropy-generated_text-davinci-003_sampling-truthfulQA-final_labelled.csv")
-    done_list = list(done_df['question'].unique())
 
     cons_scorer = ConsistencyScoring(args.scoring_type, args.pairwise_sim, args.pair_type)
 
     for inp in tqdm(df.question.unique()):
-        if inp in done_list: 
-            print('found')
-            continue
-
         outs = list(df[df.question==inp]['sampled_outputs'])
         cons_outs = list(df[df.question==inp]['consistent_outputs'])
         

@@ -51,7 +51,7 @@ class SimLLM():
     """
     def __init__(self,):
         super(SimLLM, self).__init__()
-        self.llm = pipeline(model="google/flan-t5-xl")
+        self.llm = pipeline(model="google/flan-t5-xl", device_map="auto")
         
         self.prompt_eval_step1 = EVAL_STEP1_TEMPLATE
         self.prompt_eval_step2 = EVAL_STEP2_TEMPLATE

@@ -31,4 +31,5 @@
     - `EleutherAI/pythia-12b`
     
 2. Score the outputs via the consistency scoring pipeline:
-    `python score.py --input_file generated_text-davinci-003_sampling-truthfulQA-final_labelled.csv --pairwise_sim llm_prompting --scoring_type cluster_entropy`
+    `python score.py --input_file --pairwise_sim llm_prompting --scoring_type cluster_entropy`
+    Run the above command with all the files generated from the **step 1** specifying their paths in the `--input_file` argument.
