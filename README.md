@@ -29,3 +29,6 @@
     - `EleutherAI/pythia-2.8b`
     - `EleutherAI/pythia-6.9b`
     - `EleutherAI/pythia-12b`
+    
+2. Score the outputs via the consistency scoring pipeline:
+    `python score.py --input_file generated_text-davinci-003_sampling-truthfulQA-final_labelled.csv --pairwise_sim llm_prompting --scoring_type cluster_entropy`
