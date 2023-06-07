@@ -82,6 +82,7 @@ Question: {question}
 For the question above there are several options given, choose one among them which seems to be the most correct."""
     for i in range(len(outs)):
         PROMPT_TEMPLATE += f"""\nOption {i+1}: {outs[i]}"""
+    PROMPT_TEMPLATE += f"""\nOption {len(outs)+1}: Don't know the correct answer"""
     PROMPT_TEMPLATE += """\n\nAnswer:"""  
     prompt = PromptTemplate(
         input_variables=["question",],
