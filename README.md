@@ -17,7 +17,7 @@
     
     `python generate.py --input_file truthfulQA-final_labelled.csv --model_name --variation_type context`
     
-    Run the both of the above commands on different "--model_name":
+    Run the both of the above commands on different `--model_name`:
     - `facebook/opt-125m`
     - `facebook/opt-350m`
     - `facebook/opt-1.3b` 
@@ -31,5 +31,7 @@
     - `EleutherAI/pythia-12b`
     
 2. Score the outputs via the consistency scoring pipeline:
-    `python score.py --input_file --pairwise_sim llm_prompting --scoring_type cluster_entropy`
-    Run the above command with all the files generated from the **step 1** specifying their paths in the `--input_file` argument.
+
+    `python score.py --input_file file_path --pairwise_sim llm_prompting --scoring_type cluster_entropy`
+    
+    Run the above command with all the files generated from **step 1** specifying their paths in the `--input_file` argument.
