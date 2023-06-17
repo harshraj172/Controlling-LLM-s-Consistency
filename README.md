@@ -9,11 +9,9 @@
 - `example-consistency_paraphrasing.ipynb` proof of concept of the idea.
 
 ## Setup
-For Linux 
 ```
 conda create env python=3.9
 conda activate env
-pip install torch torchvision torchaudio
 pip install -r requirements.txt
 ```
 ## Experiments
