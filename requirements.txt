@@ -1,5 +1,9 @@
-openai 
-langchain 
-pandas
-evaluate
-accelerate
+langchain==0.0.103
+openai==0.27.1
+pandas==2.0.2
+evaluate==0.4.0
+accelerate==0.20.3
+numpy==1.25.0
+tqdm==4.65.0
+torch >=1.9.0
+transformers==4.30.2

@@ -9,7 +9,13 @@
 - `example-consistency_paraphrasing.ipynb` proof of concept of the idea.
 
 ## Setup
-`pip install -r requirements.txt`
+For Linux 
+```
+conda create env python=3.9
+conda activate env
+pip install torch torchvision torchaudio
+pip install -r requirements.txt
+```
 ## Experiments
 1. To generate outputs across model sizes and types:
     
