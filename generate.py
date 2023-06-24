@@ -80,10 +80,14 @@ def ans_via_comparison(inp, outs, type_="sampling"):
 """
 Question: {question}
 For the question above there are several options given, choose one among them which seems to be the most correct."""
+    PROMPT_TEMPLATE_SUFFIX = ""
     for i in range(len(outs)):
-        PROMPT_TEMPLATE += f"""\nOption {i+1}: {outs[i]}"""
-    PROMPT_TEMPLATE += f"""\nOption {len(outs)+1}: Don't know the correct answer"""
-    PROMPT_TEMPLATE += """\n\nAnswer:"""  
+        PROMPT_TEMPLATE_SUFFIX += f"""\nOption {i+1}: {outs[i]}"""
+    PROMPT_TEMPLATE_SUFFIX += f"""\nOption {len(outs)+1}: Don't know the correct answer"""
+    PROMPT_TEMPLATE_SUFFIX += """\n\nAnswer:"""  
+    PROMPT_TEMPLATE_SUFFIX = PROMPT_TEMPLATE_SUFFIX.replace('{', '{{')
+    PROMPT_TEMPLATE_SUFFIX = PROMPT_TEMPLATE_SUFFIX.replace('}', '}}')
+    PROMPT_TEMPLATE += PROMPT_TEMPLATE_SUFFIX
     prompt = PromptTemplate(
         input_variables=["question",],
         template=PROMPT_TEMPLATE,)
@@ -141,6 +145,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     df = pd.read_csv(args.input_file)
+    df = df[657:].reset_index(drop=True)
     if args.model_name!="text-davinci-003":
         tokenizer = AutoTokenizer.from_pretrained(args.model_name)
         model = AutoModelForCausalLM.from_pretrained(args.model_name)
