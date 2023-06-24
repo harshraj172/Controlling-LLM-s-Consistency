@@ -29,10 +29,19 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     df = pd.read_csv(args.input_file)
+    div = 4 if 'context' in args.input_file else 10
+    questions = []
+    for i in range(0, len(df.question), div):
+        questions.append(df.question[i])
+        
+    if args.pairwise_sim=="llm_prompting":
+        pipe = pipeline(model="google/flan-t5-xl", device_map="auto")
+        llm = HuggingFacePipeline(pipeline=pipe)
+    else:
+        llm = None
+    cons_scorer = ConsistencyScoring(args.scoring_type, args.pairwise_sim, args.pair_type, llm)
 
-    cons_scorer = ConsistencyScoring(args.scoring_type, args.pairwise_sim, args.pair_type)
-
-    for inp in tqdm(df.question.unique()):
+    for inp in tqdm(questions):
         outs = list(df[df.question==inp]['sampled_outputs'])
         cons_outs = list(df[df.question==inp]['consistent_outputs'])
         

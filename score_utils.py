@@ -5,10 +5,10 @@ import evaluate
 import spacy 
 
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSequenceClassification, pipeline
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-from langchain.llms import OpenAI
+from langchain.llms import OpenAI, HuggingFacePipeline
 from langchain.prompts import PromptTemplate
 from langchain.llms import OpenAI
 from langchain.chains import LLMChain
@@ -44,52 +44,34 @@ class SimEntail():
         outputs = self.detection_model(**inputs)
         scores = outputs.logits.softmax(dim=-1)
         return scores.T[2].item()
-    
+
 class SimLLM():
     """
-    Using huggingface models
+    Using langchain models
     """
-    def __init__(self,):
+    def __init__(self, llm):
         super(SimLLM, self).__init__()
-        self.llm = pipeline(model="google/flan-t5-xl", device_map="auto")
+        self.llm = llm 
         
-        self.prompt_eval_step1 = EVAL_STEP1_TEMPLATE
-        self.prompt_eval_step2 = EVAL_STEP2_TEMPLATE
+        # step 1
+        prompt_eval_step1 = PromptTemplate(
+                input_variables=["context", "question"],
+                template=EVAL_STEP1_TEMPLATE,)
+        self.chain_step1 = LLMChain(llm=llm, prompt=prompt_eval_step1)    
+        self.chain_step1.verbose = False    
+        # step 2
+        prompt_eval_step2 = PromptTemplate(
+                input_variables=["question", "answer1", "answer2"],
+                template=EVAL_STEP2_TEMPLATE,)
+        self.chain_step2 = LLMChain(llm=llm, prompt=prompt_eval_step2)    
+        self.chain_step2.verbose = False
 
     def score(self, inp, out1, out2, type):
-        out1_step1 = self.llm(self.prompt_eval_step1.replace("{context}", out1).replace("{question}", inp))[0]['generated_text']
-        out2_step1 = self.llm(self.prompt_eval_step1.replace("{context}", out2).replace("{question}", inp))[0]['generated_text']
+        out1_step1 = self.chain_step1.run({"context":out1, "question":inp})
+        out2_step1 = self.chain_step1.run({"context":out2, "question":inp})
 
-        score = self.llm(self.prompt_eval_step2.replace("{question}", inp.strip()).replace("{answer1}", out1_step1.strip()).replace("{answer2}", out2_step1.strip()))[0]['generated_text']
-        return 1 if score.strip().lower()=='yes' else 0
-
-# class SimLLM():
-#     """
-#     Using text-davinci-003
-#     """
-#     def __init__(self,):
-#         super(SimLLM, self).__init__()
-#         llm = OpenAI(openai_api_key="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", )
-
-#         # step 1
-#         prompt_eval_step1 = PromptTemplate(
-#                 input_variables=["context", "question"],
-#                 template=EVAL_STEP1_TEMPLATE,)
-#         self.chain_step1 = LLMChain(llm=llm, prompt=prompt_eval_step1)    
-#         self.chain_step1.verbose = False    
-#         # step 2
-#         prompt_eval_step2 = PromptTemplate(
-#                 input_variables=["question", "answer1", "answer2"],
-#                 template=EVAL_STEP2_TEMPLATE,)
-#         self.chain_step2 = LLMChain(llm=llm, prompt=prompt_eval_step2)    
-#         self.chain_step2.verbose = False
-
-#     def score(self, inp, out1, out2, type):
-#         out1_step1 = self.chain_step1.run({"context":out1, "question":inp})
-#         out2_step1 = self.chain_step1.run({"context":out2, "question":inp})
-
-#         score = self.chain_step2.run({"question":inp.strip(), "answer1":out1_step1.strip(), "answer2":out2_step1.strip()})
-#         return 1 if score.strip()=='Yes' else 0
+        score = self.chain_step2.run({"question":inp.strip(), "answer1":out1_step1.strip(), "answer2":out2_step1.strip()})
+        return 1 if score.strip()=='Yes' else 0
 
 # class SimLLM():
 #     """
@@ -121,8 +103,7 @@ class SimLLM():
 
 #         return self.parse(output.content)
 
-def semantic_clustering(inp, outs, pairwise_sim="entailment", pair_type="Question-Answering", threshold=0.5,):
-    classifier = SimEntail() if pairwise_sim=="entailment" else SimLLM()
+def semantic_clustering(inp, outs, classifier, pairwise_sim="entailment", pair_type="Question-Answering", threshold=0.5,):
     
     C = [[outs[0]]]
     outs = outs[1:]
@@ -142,11 +123,12 @@ def semantic_clustering(inp, outs, pairwise_sim="entailment", pair_type="Questio
 
 
 class ConsistencyScoring():
-    def __init__(self, scoring_type, pairwise_sim, pair_type):
+    def __init__(self, scoring_type, pairwise_sim, pair_type, llm):
         super(ConsistencyScoring, self).__init__()
         self.scoring_type = scoring_type
         self.pairwise_sim = pairwise_sim
         self.pair_type = pair_type
+        self.llm = llm
 
     def score(self, inp, outs):
         if self.scoring_type == "cluster_entropy":
@@ -156,9 +138,10 @@ class ConsistencyScoring():
             return scorer.get_score(outs)
 
     def entropy_score(self, inp, outs, pairwise_sim="entailment", pair_type="Question-Answering"):
+        classifier = SimEntail() if pairwise_sim=="entailment" else SimLLM(self.llm)
         # TODO
         # Add exact score via entropy estimate through Monte Carlo
-        clusters = semantic_clustering(inp, outs, pairwise_sim, pair_type)
+        clusters = semantic_clustering(inp, outs, classifier, pairwise_sim, pair_type)
 
         pk = np.array([len(c) for c in clusters])/sum([len(c) for c in clusters])
         H = entropy(pk, base=2)
