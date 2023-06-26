@@ -145,7 +145,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     df = pd.read_csv(args.input_file)
-    df = df[657:].reset_index(drop=True)
     if args.model_name!="text-davinci-003":
         tokenizer = AutoTokenizer.from_pretrained(args.model_name)
         model = AutoModelForCausalLM.from_pretrained(args.model_name)
