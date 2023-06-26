@@ -46,8 +46,8 @@ if __name__ == "__main__":
         cons_outs = list(df[df.question==inp]['consistent_outputs'])
         
         # cleaning
-        cons_outs = [re.sub(re.compile(r'Option [0-9]+'), '', s).strip() for s in cons_outs]
-        cons_outs = [s.split(':')[-1].strip() for s in cons_outs]
+        cons_outs = [re.sub(re.compile(r'Option [0-9]+'), '', str(s)).strip() for s in cons_outs]
+        cons_outs = [str(s).split(':')[-1].strip() for s in cons_outs]
         
         score = cons_scorer.score(inp, outs)
         cons_score = cons_scorer.score(inp, cons_outs)
