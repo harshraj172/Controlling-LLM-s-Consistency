@@ -23,7 +23,7 @@ def paraphrase(inp, method=1):
             input_variables=["method", "sentence"],
             template=PP_TEMPLATE,
         )
-    llm = ChatOpenAI(openai_api_key="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",model_name="gpt-3.5-turbo")
+    llm = ChatOpenAI(openai_api_key="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",model_name="gpt-3.5-turbo")
     messages = [HumanMessage(content=pp_prompt.format(method=str(method), sentence=inp))]
     inp_pp = llm(messages, stop='\n').content
     return inp_pp.strip()
@@ -46,7 +46,7 @@ Answer:"""
     if type_ == "sampling":
         for t in np.arange(0.01, 1, 0.1):
             if args.model_name=="text-davinci-003":
-                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
+                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
                 out = chain.run({"question":inp,})
             else:
@@ -58,7 +58,7 @@ Answer:"""
                 out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp), '')
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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", top_p=0.7)
+        llm = OpenAI(openai_api_key="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", top_p=0.7)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
@@ -96,7 +96,7 @@ For the question above there are several options given, choose one among them wh
     if type_ == "sampling":
         for t in np.arange(0.01, 1, 0.1):
             if args.model_name=="text-davinci-003":
-                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
+                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
                 out = chain.run({"question":inp})
             else:
@@ -108,7 +108,7 @@ For the question above there are several options given, choose one among them wh
                 out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp), '')
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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", top_p=0.7)
+        llm = OpenAI(openai_api_key="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", top_p=0.7)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
