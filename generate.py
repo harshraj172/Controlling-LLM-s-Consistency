@@ -147,8 +147,8 @@ if __name__ == "__main__":
     df = pd.read_csv(args.input_file)
     if args.model_name!="text-davinci-003":
         tokenizer = AutoTokenizer.from_pretrained(args.model_name)
-        model = AutoModelForCausalLM.from_pretrained(args.model_name)
-        model.to(device)
+        model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map='auto')
+        # model.to(device)
     
     all_questions, all_outs, all_inp_pps, all_cons_inp_pps, all_consistent_outs, all_correct_outs = [], [], [], [], [], []
     for i in tqdm(range(len(df))):
