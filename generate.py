@@ -5,7 +5,7 @@ import pandas as  pd
 from tqdm.auto import tqdm
 
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, T5ForConditionalGeneration, T5Tokenizer
 
 from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI
@@ -23,7 +23,7 @@ def paraphrase(inp, method=1):
             input_variables=["method", "sentence"],
             template=PP_TEMPLATE,
         )
-    llm = ChatOpenAI(openai_api_key="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",model_name="gpt-3.5-turbo")
+    llm = ChatOpenAI(openai_api_key="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",model_name="gpt-3.5-turbo")
     messages = [HumanMessage(content=pp_prompt.format(method=str(method), sentence=inp))]
     inp_pp = llm(messages, stop='\n').content
     return inp_pp.strip()
@@ -46,7 +46,7 @@ Answer:"""
     if type_ == "sampling":
         for t in np.arange(0.01, 1, 0.1):
             if args.model_name=="text-davinci-003":
-                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
+                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
                 out = chain.run({"question":inp,})
             else:
@@ -58,7 +58,7 @@ Answer:"""
                 out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp), '')
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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", top_p=0.7)
+        llm = OpenAI(openai_api_key="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", top_p=0.7)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
@@ -76,14 +76,28 @@ Answer:"""
     return outs, inp_pps
 
 def ans_via_comparison(inp, outs, type_="sampling"):
+#     # for all others
+#     PROMPT_TEMPLATE = \
+# """
+# Question: {question}
+# For the question above there are several options given below, choose one among them which seems to be the most correct."""
+#     PROMPT_TEMPLATE_SUFFIX = ""
+#     for i in range(len(outs)):
+#         PROMPT_TEMPLATE_SUFFIX += f"""\nOption {i+1}: {outs[i]}"""
+#     PROMPT_TEMPLATE_SUFFIX += f"""\nOption {len(outs)+1}: Don't know the correct answer"""
+#     PROMPT_TEMPLATE_SUFFIX += """\n\nAnswer:"""  
+#     PROMPT_TEMPLATE_SUFFIX = PROMPT_TEMPLATE_SUFFIX.replace('{', '{{')
+#     PROMPT_TEMPLATE_SUFFIX = PROMPT_TEMPLATE_SUFFIX.replace('}', '}}')
+    
+    # for flan-T5-xl
     PROMPT_TEMPLATE = \
 """
 Question: {question}
-For the question above there are several options given, choose one among them which seems to be the most correct."""
+Instruction: Choose the correct option."""
     PROMPT_TEMPLATE_SUFFIX = ""
     for i in range(len(outs)):
-        PROMPT_TEMPLATE_SUFFIX += f"""\nOption {i+1}: {outs[i]}"""
-    PROMPT_TEMPLATE_SUFFIX += f"""\nOption {len(outs)+1}: Don't know the correct answer"""
+        PROMPT_TEMPLATE_SUFFIX += f"""\n {outs[i]}"""
+    PROMPT_TEMPLATE_SUFFIX += f"""\n Don't know the correct answer"""
     PROMPT_TEMPLATE_SUFFIX += """\n\nAnswer:"""  
     PROMPT_TEMPLATE_SUFFIX = PROMPT_TEMPLATE_SUFFIX.replace('{', '{{')
     PROMPT_TEMPLATE_SUFFIX = PROMPT_TEMPLATE_SUFFIX.replace('}', '}}')
@@ -96,7 +110,7 @@ For the question above there are several options given, choose one among them wh
     if type_ == "sampling":
         for t in np.arange(0.01, 1, 0.1):
             if args.model_name=="text-davinci-003":
-                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
+                llm = OpenAI(openai_api_key="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", top_p=0.7, temperature=t)
                 chain = LLMChain(llm=llm, prompt=prompt)
                 out = chain.run({"question":inp})
             else:
@@ -108,7 +122,7 @@ For the question above there are several options given, choose one among them wh
                 out = out.replace(PROMPT_TEMPLATE.replace("{question}", inp), '')
             outs.append(out.strip())
     elif type_ == "context":
-        llm = OpenAI(openai_api_key="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", top_p=0.7)
+        llm = OpenAI(openai_api_key="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", top_p=0.7)
         chain = LLMChain(llm=llm, prompt=prompt)
         for r in range(4):
             inp_pp = paraphrase(inp, method=r+1)
@@ -145,10 +159,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     df = pd.read_csv(args.input_file)
+    
     if args.model_name!="text-davinci-003":
-        tokenizer = AutoTokenizer.from_pretrained(args.model_name)
-        model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map='auto')
-        # model.to(device)
+        if "t5" in args.model_name:
+            tokenizer = T5Tokenizer.from_pretrained(args.model_name)
+            model = T5ForConditionalGeneration.from_pretrained(args.model_name, device_map="auto")
+        else:
+            tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+            model = AutoModelForCausalLM.from_pretrained(args.model_name, device_map='auto')
     
     all_questions, all_outs, all_inp_pps, all_cons_inp_pps, all_consistent_outs, all_correct_outs = [], [], [], [], [], []
     for i in tqdm(range(len(df))):

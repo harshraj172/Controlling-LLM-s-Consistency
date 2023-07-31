@@ -129,13 +129,14 @@ class ConsistencyScoring():
         self.pairwise_sim = pairwise_sim
         self.pair_type = pair_type
         self.llm = llm
+        if self.scoring_type == "thresholding": self.thresh_scorer = MixSimThresholdScore()
 
     def score(self, inp, outs):
         if self.scoring_type == "cluster_entropy":
             return self.entropy_score(inp, outs, self.pairwise_sim, self.pair_type)
         elif self.scoring_type == "thresholding":
-            scorer = MixSimThresholdScore()
-            return scorer.get_score(outs)
+            thresh_score = self.thresh_scorer.get_score(outs)
+            return list(thresh_score.values())
 
     def entropy_score(self, inp, outs, pairwise_sim="entailment", pair_type="Question-Answering"):
         classifier = SimEntail() if pairwise_sim=="entailment" else SimLLM(self.llm)
@@ -206,7 +207,7 @@ class MixSimThresholdScore():
                     num_matches += 1
                     break # no multiple match
         if len(all_NERs) == 0:
-          return 0.0
+            return 0.0
         return float(num_matches/len(set(all_NERs)))
 
     def get_score(self, outputs):
@@ -220,11 +221,11 @@ class MixSimThresholdScore():
         ]
         con_scores = {}
         for fn, threshold in fns:
-            print('Getting score for ', fn.__name__+'_binary')
+            # print('Getting score for ', fn.__name__+'_binary')
             con_scores[fn.__name__+'_binary'] = self.consistency(outputs, fn, threshold, True)
 
         for fn, threshold in fns:
-            print('Getting score for ', fn.__name__)
+            # print('Getting score for ', fn.__name__)
             con_scores[fn.__name__] = self.consistency(outputs, fn, threshold, False)
         return con_scores
     
